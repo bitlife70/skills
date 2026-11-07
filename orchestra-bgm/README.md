@@ -49,6 +49,7 @@ SKILL.md            Claude 스킬 문서 (작곡·편곡·렌더 규칙)
 examples/
   demo_theme.py     77초 시네마틱 큐
   demo_shorts.py    30초 쇼츠 큐 (첫 박 훅, -14 LUFS)
+  ashen_throne.py   2분 다크 판타지(소울라이크) BGM: 종소리·남성 합창·오스티나토·투티 클라이맥스
   swan_lake.py      차이콥스키 백조의 호수 2막 No.10 1–9마디 (원 총보에서 옮김)
 analysis/           프로파일 재생성 파이프라인
   fetch_samples.sh, sample_urls.txt   원본 샘플 받기
