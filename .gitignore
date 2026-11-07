@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+# analysis working files (re-creatable; source samples are not redistributed here)
+orchestra-bgm/analysis/flac/
+orchestra-bgm/analysis/raw/
+orchestra-bgm/analysis/wav/
+orchestra-bgm/analysis/analysis_raw.json
+orchestra-bgm/analysis/analysis_test.json
+*.wav
