@@ -11,4 +11,15 @@ function thumbA() {
   ctx.save(); rrect(110, 760, 640, 92, 46); ctx.fillStyle = tone(C.mint, .6); ctx.fill(); ctx.strokeStyle = C.mint; ctx.lineWidth = 3; ctx.stroke(); ctx.restore();
   txt(430, 806, '핵심 숫자나 대비 한 줄', { size: 36, weight: 800, color: C.text, align: 'center' });
 }
-window.thumb = k => { thumbA(); return cv.toDataURL('image/png'); };
+// B: question / contrast headline (3 short lines or 2 lines + muted sub), illustration that poses the question
+function thumbB() {
+  newReg(); background();
+  ctx.save(); rrect(1060, 300, 780, 600, 30); ctx.fillStyle = rgba(C.sky, .06); ctx.fill(); ctx.restore();
+  for (let i = 0; i < 6; i++) appTile(1170 + (i % 3) * 170, 470 + Math.floor(i / 3) * 140, 1.5, C.peach, 1);
+  warnTri(1700, 380, 2, 1);
+  txt(110, 230, '시리즈 · 편 이름', { size: 30, weight: 700, color: C.blue });
+  txt(100, 420, '질문형 첫 줄,', { size: 128, weight: 900, color: C.text });
+  txt(100, 590, '답을 궁금하게', { size: 128, weight: 900, color: C.blue });
+  txt(110, 750, '답의 실마리 한 줄 — 회색으로', { size: 40, weight: 700, color: C.muted });
+}
+window.thumb = k => { (k === 'B' ? thumbB : thumbA)(); return cv.toDataURL('image/png'); };

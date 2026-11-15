@@ -31,3 +31,10 @@ SRC=src node tools/check.mjs all '[["D0",4],["D1",12],["D2",4]]' _stills   # VER
 ONLY=D1 SRC=src node tools/render.mjs                                      # _scenes/D1.mp4
 ```
 필요: Node 18+, Playwright(Chromium), ffmpeg, Python 3 + numpy, Pillow(썸네일 축소).
+
+## 변경 이력
+- 2026-11-15 — 바이브코딩 편 제작에서 다듬은 내용 반영
+  - 소품 추가: `appTile`, `warnTri`, `diamond`, `glow`, `pill`, `spotlight`(나머지를 어둡게 해 시선 모으기), `dashPoly`(점선 영역 경계 그리기), `subT`(긴 문장 안 특정 구절 시각)
+  - `build_timing.py`: `n`을 고정 ID로 처리 — 문장 끼워 넣기 시 번호 재부여 불필요
+  - 썸네일 템플릿 B안(질문·대비형) 추가
+  - SKILL.md: 직선 화살표 원칙, 스포트라이트·영역 경계 강조, 과정으로 보여 주기, 부분 재녹음·병렬 녹음 경로 확인, 썸네일 배치 요령, 피드백 교훈 추가

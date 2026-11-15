@@ -43,7 +43,7 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - 파일 구성:
   - `engine/core.js` — 팔레트, `txt`·`box`·`link`·`line`·`header`·`subtitle`·`progress`, **검증기 `verify`**
   - `engine/art.js` — 일러스트(person, robot, windowUI, paper, cylinder, rack, machine, laptop, check/cross, clockFace, hourglass, mapSheet, glyph, caption, leader, bubble, slab/stack …)
-  - `engine/helpers.js` — 시리즈에서 쌓은 소품(tower, card, miniBot, miniGraph, cloudShape, magnifier, calendar, lock, flag, star, shield, arrowArc, zigzagRight, coil, shipArt, waves, flow 공정라인 …)
+  - `engine/helpers.js` — 시리즈에서 쌓은 소품(tower, card, miniBot, miniGraph, cloudShape, magnifier, calendar, lock, flag, star, shield, arrowArc, zigzagRight, coil, shipArt, waves, flow 공정라인, appTile, warnTri, diamond, glow, pill, spotlight, dashPoly, subT …)
   - `engine/main.js` — 타임라인·자막·진행바·페이드·`verifyAll`·`still`, 글자 배율(`window.FONT_SCALE`, 기본 1.22)
   - `templates/scenes.js` — 장면 작성 예시(D0 타이틀, D1 일러스트+구성도, D2 맺음). 에피소드마다 새로 쓴다.
   - `tools/` — `check.mjs`(검증·스틸) · `render.mjs`(장면별 mp4) · `build_timing.py` · `mix.py`(믹스·SRT·합성) · `thumb.mjs`
@@ -86,12 +86,14 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 
 - 도구: `mcp__remote-devices__typecast__text_to_speech` (타임스탬프 버전은 출력이 너무 커서 쓰지 않는다)
 - `voice_id: tc_68257f68bc6e3c161ab5078d`, `audio_tempo: 1.1`, `model: ssfm-v30`. **BGM은 쓰지 않는다.**
-- 한 번에 10개 안팎씩 **순서대로** 호출한다(파일명이 타임스탬프 순 = 문장 순). 같은 문장을 다시 녹음하지 않는다.
+- 한 번에 10~13개씩 같은 메시지 안에서 순서대로 호출한다. **각 호출 결과로 저장 경로가 돌아오므로** 문장 번호↔파일을 그 경로로 확인한다(타임스탬프 순 = 호출 순). 같은 문장을 다시 녹음하지 않는다.
 - 발음 표기 예: AI→에이아이, IT→아이티, MCP→엠씨피, FDE→에프디이, SI→에스아이, ERP→이알피, MES→엠이에스, BA→비에이, OS→오에스, API→에이피아이, SDK→에스디케이, AWS→에이더블유에스, AX→에이엑스, 오픈AI→오픈에이아이, Claude→클로드, Claude Code→클로드 코드, Cowork→코워크, C 컴파일러→씨 컴파일러. 큰 숫자+단위는 한글로(150개→백오십 개, 1,500건→천오백 건). 따옴표는 뺀다.
 - 파일은 사용자 PC `C:\Users\User\workspace\typecast_output\`에 저장된다. 가져오기:
   1. `device_bash`: `cd "$HOME/mnt"; D=motion_graphic_playground/<프로젝트>; mkdir -p $D/voice_<편> $D/_scratch; i=1; for f in $(ls typecast_output/<날짜-시각 접두>*.wav | sort); do cp "$f" $D/voice_<편>/p$(printf %02d $i).wav; i=$((i+1)); done; cd $D && tar cf _scratch/voice_<편>.tar voice_<편>`
   2. `device_stage_files`로 tar를 올리고 → 작업공간에서 `tar xf /mnt/user-data/uploads/.../voice_<편>.tar`
-- 수정 녹음은 `q01, q02…`처럼 접두를 바꿔 같은 폴더에 둔다. `lines.json`의 `file`로 줄마다 어떤 파일을 쓸지 지정하므로 나머지는 재녹음하지 않는다.
+- 수정 녹음은 `v04b`, `q01`처럼 이름을 바꿔 같은 폴더에 두고(원본 덮어쓰기 금지), 수정분만 tar로 묶어 올린다. `lines.json`의 `file`로 줄마다 어떤 파일을 쓸지 지정하므로 나머지는 재녹음하지 않는다.
+- **문장을 끼워 넣을 땐 번호를 다시 매기지 않는다.** `n`은 고정 ID라서 새 줄은 `n=50, 51…`로 원하는 위치에 넣는다(재생 순서 = 리스트 순서). 그래야 `OVR`·`EXTRA`·장면 코드의 `subT(장면, n, k)` 참조가 깨지지 않는다.
+- 사실 확인이 필요한 기술 설명(예: "MCP Apps = MCP 서버가 도구 결과와 함께 UI 리소스를 보내고 호스트가 대화창에 띄움")은 웹으로 확인한 뒤 내레이션에 넣는다.
 
 `lines.json` 형식: `[{"n":1,"scene":"P1","sub":"자막 원문","tts":"발음 표기","file":"voice_x/p01.wav"}, …]`
 
@@ -104,6 +106,7 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - 자막은 ≤30자로 구두점에서 나누고, 시간은 글자 수 비례로 배분한다. `HL` 키워드는 `*강조*`로 파란색.
 - **어색한 분절은 `OVR`로 직접 끊는다** — "100만 / 줄짜리", "만질 / 수 있는", "눈이 / 아니라", "수천, / 수만"처럼 숫자·관형구가 갈리면 반드시 고친다(합치면 원문과 같아야 함 — 스크립트가 검사).
 - 결과: `src/timing.js`(TM) + `timing.json`. 장면 안의 줄 시작 시각이 `L[i]`(장면 기준 초)로 장면 함수에 들어간다.
+- 긴 문장 안의 특정 구절에 그림을 맞출 땐 `subT('V4', 32, 2)`(장면 V4, 줄 n=32, 자막 조각 2의 시작 시각)를 쓴다. 문장을 고쳐 조각이 바뀌어도 그림이 따라간다.
 
 ---
 
@@ -118,7 +121,10 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - 맺음: 마지막 1~2문장은 화면 중앙 큰 글자, 자막은 숨김(`window.NOSUB_LAST`).
 - 비교는 좌우 분할(왼쪽 회색 '지금까지' / 오른쪽 파랑 '이제'), 과정은 순환 고리, 성장은 막대·계단, 규모는 점·미니봇 군집, 시간은 로그 시간축·달력이 잘 먹혔다.
 - 같은 요소가 계속 설명되며 채워질 땐 **점선 윤곽을 유지한 채 하나씩 채운다**(사라지지 않게).
-- 장면 전환은 0.45초 페이드. 한 장면 안의 단계 전환은 `beat()`로 — **나가는 것이 끝난 뒤 들어오게**(동시에 겹치면 검증기가 겹침으로 잡는다).
+- 장면 전환은 0.45초 페이드. 한 장면 안의 단계 전환은 `beat()`로 — **나가는 것이 끝난 뒤 들어오게**(동시에 겹치면 검증기가 겹침으로 잡는다). 실무 공식: 앞 단계 `beat(t, a, L[k]+.2)`, 다음 단계 `ap(t, L[k]+.25)`.
+- **선(화살표)은 직선이 기본.** 연결되는 두 박스의 중심 높이(또는 가로 위치)를 맞추고 `ff`/`tf`로 같은 y(x)를 짚어 일직선으로 만든다(`tf: (원하는 y − 박스 y) / 박스 높이`). 꺾임은 분기(다이아몬드의 위·아래 꼭짓점 → 옆 박스)처럼 꼭 필요할 때 **한 번만**. 직선으로 될 것을 두 번 꺾으면 지적받는다. 꺾인 선의 라벨이 모서리에 붙으면 `lpos: [x, y]`로 옮긴다.
+- **시선을 모아야 할 대목**(예: "이 부분은 내준다")은 `spotlight([x,y,w,h], a)`로 나머지를 어둡게 하고 그 영역만 `glow`로 강조 → 다음 설명으로 넘어가면 다시 흐리게. "이 모두가 우리 영역"은 `dashPoly`로 여러 박스를 감싸는 점선 경계 + `pill` 라벨, 그 전에 해당 박스들을 하나씩 `glow`로 짚는다.
+- 정적인 도형(DB 하나 등)만 덩그러니 두지 않는다. 주장("운영해 온 사람이 필요하다")은 **과정**으로 보여 준다: 현업 앱 → 연동 지점(인터페이스·권한·정합성·장애 대응 체크가 하나씩 켜짐) → 레거시, 그 지점에 '우리' 인물 배치.
 
 ---
 
@@ -185,11 +191,13 @@ NOSUB_LAST=2 python3 tools/mix.py "시리즈_편이름_가로_1920x1080.mp4" "�
   - 핵심 불릿
   - **챕터**: `0:00`부터 시작, 각 10초 이상. `timing.json`의 장면 `t0`로 만든다.
   - 참고 자료(출처·날짜), "내레이션은 AI 음성(Typecast)으로 제작" 고지, 해시태그 8~10개
-- 고객사 실명이 영상에 있으면 설명란엔 쓰지 않고, 업로드는 '일부 공개'를 권한다.
-- 썸네일 2종(1280×720): `src/thumb.js`에 그린다(같은 캔버스·팔레트).
-  - A안: 왼쪽 큰 2줄 제목(둘째 줄 파랑, 150~170px) + 오른쪽 강한 상징 일러스트 하나 + 숫자·대비 배지
-  - B안: 메시지형
-  - `node tools/thumb.mjs A B` → 1280×720 JPG로 축소
+- 대안 제목 2개를 함께 준다. 고객사·그룹사 실명이나 내부 전략(플랫폼명·사업 계획)이 영상에 있으면 설명란엔 쓰지 않고, 업로드는 '일부 공개'를 권한다.
+- 썸네일 2종(1280×720): `src/thumb.js`에 그린다(같은 캔버스·팔레트, 타이틀 장면 그림 재활용).
+  - A안(주제형): 작은 시리즈 라벨 + 왼쪽 큰 2줄 제목(둘째 줄 파랑) + 민트 알약 배지(핵심 한 줄) + 오른쪽 상징 일러스트 하나(옅은 파란 원 배경)
+  - B안(질문·대비형): "바다 위 코일, / 바꿀 수 있을까?", "엔진은 빌리고 / 지도는 선점한다"처럼 질문이나 대비 + 회색 부제, 오른쪽은 그 질문을 그린 장면
+  - 제목 글자는 왼쪽 ~1000px 안에(한 줄 8자 넘으면 크기를 110~130으로). 내용이 위로 몰리면 `ctx.translate(0, 70)`으로 세로 중앙을 맞춘다. 오른쪽 아래(유튜브 재생시간 배지 자리)엔 중요한 글자를 두지 않는다.
+  - FONT_SCALE을 덮어쓰는 파일(예: scenes_p.js)을 안 싣는 페이지에서 그리면 글자가 1.22배 작아지니 크기를 키운다.
+  - `node tools/thumb.mjs A B` → 1280×720 JPG로 축소 → 4장을 2×2로 이어 붙여 한 번에 확인
 
 ---
 
@@ -203,3 +211,7 @@ NOSUB_LAST=2 python3 tools/mix.py "시리즈_편이름_가로_1920x1080.mp4" "�
 - 청중이 고객과 비교당한다는 압박은 '고객 혼자의 생각'이 아니라 **경쟁사 비교**까지 보여 준다.
 - 개발자 대상: "용역형" 같은 말 대신 "요구받은 화면·기능을 구현하던 일 → 에이전틱 AI 핵심 기술(에이전트 설계·오케스트레이션, 하네스·평가, 컨텍스트 엔지니어링, 온톨로지·MCP 연동)로 한 단계 올라간다".
 - 실제 사례는 국내 + 해외를 짝지어 넣으면 "이상이 아니라 현실"로 받아들인다.
+- 원인 설명은 정확하게: "빅테크가 빨리 들어왔다" → 기존 클라우드 계약·계정 위에 환경만 켜면 되는 **클라우드 사업자 강점** + FDE 투입. 하나만 말하면 지적받는다.
+- 레거시는 대표 이름 두 개로 끝내지 않는다(ERP·MES·SCM + 설비·품질·물류·회계 …).
+- 경쟁사는 적으로만 그리지 않는다. 관점을 바꾸면 파트너(확정은 실선, 잠정은 점선 + '(잠정 파트너)'), 상생 구조는 양방향 화살표로 서로 주고받는 것을 각각 라벨로.
+- 사용자가 준 구조도(excalidraw 등)가 있으면 배치·연결을 그대로 따르고, 말로 덧붙인 구성요소(예: 모니터링·토큰 관리·하네스·온톨로지)를 그 안에 칩으로 넣는다.

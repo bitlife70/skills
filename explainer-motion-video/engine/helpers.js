@@ -181,3 +181,39 @@ function arrowArc(cx, cy, r, a0, a1, col, a = 1) {
 function shield(x, y, s, col, a = 1) { if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.scale(s, s);
   ctx.beginPath(); ctx.moveTo(0, -90); ctx.lineTo(80, -60); ctx.lineTo(70, 30); ctx.quadraticCurveTo(40, 80, 0, 100); ctx.quadraticCurveTo(-40, 80, -70, 30); ctx.lineTo(-80, -60); ctx.closePath();
   ctx.fillStyle = tone(col, .6); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 3 / s; ctx.stroke(); ctx.restore(); }
+
+// ----- added from the vibe-coding episode -----
+function appTile(x, y, s, col, a = 1, warn = 0) {   // small app window tile; warn>0 adds a rose corner triangle
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; rrect(x - 30 * s, y - 24 * s, 60 * s, 48 * s, 7 * s); ctx.fillStyle = tone(col, .65); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.fillStyle = tone(col, .35); ctx.fillRect(x - 30 * s, y - 24 * s, 60 * s, 9 * s);
+  ctx.fillStyle = rgba(col, .8); for (let i = 0; i < 3; i++) ctx.fillRect(x - 20 * s + i * 14 * s, y + 14 * s - (6 + i * 5) * s, 9 * s, (6 + i * 5) * s);
+  if (warn > 0) { ctx.globalAlpha = a * warn; ctx.beginPath(); ctx.moveTo(x + 22 * s, y - 34 * s); ctx.lineTo(x + 36 * s, y - 10 * s); ctx.lineTo(x + 8 * s, y - 10 * s); ctx.closePath(); ctx.fillStyle = C.rose; ctx.fill(); }
+  ctx.restore();
+}
+function warnTri(x, y, s, a = 1) {   // rose warning triangle with "!"
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.beginPath(); ctx.moveTo(x, y - 22 * s); ctx.lineTo(x + 25 * s, y + 20 * s); ctx.lineTo(x - 25 * s, y + 20 * s); ctx.closePath(); ctx.fillStyle = tone(C.rose, .35); ctx.fill(); ctx.strokeStyle = C.rose; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = C.text; ctx.fillRect(x - 2 * s, y - 9 * s, 4 * s, 16 * s); ctx.fillRect(x - 2 * s, y + 11 * s, 4 * s, 4 * s); ctx.restore();
+}
+function glow(x, y, w, h, col, a) {   // pulsing highlight ring around a rect (unregistered) — pass a*(.6+.3*sin(t*4)) to pulse
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; rrect(x - 8, y - 8, w + 16, h + 16, 16); ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.stroke(); ctx.globalAlpha = a * .12; ctx.fillStyle = col; ctx.fill(); ctx.restore();
+}
+function pill(x, y, s, col, a, size = 20) {   // rounded label with bg fill (drawn over lines), returns width
+  if (a <= 0) return; const w = measure(s, size, 700) + 36; ctx.save(); ctx.globalAlpha = a; rrect(x, y - 21, w, 42, 21); ctx.fillStyle = C.bg; ctx.fill(); ctx.fillStyle = rgba(col, .22); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+  txt(x + 18, y, s, { size, weight: 700, color: C.text, a }); return w;
+}
+function diamond(cx, cy, w, h, col, a = 1) {   // decision node; register it with reg(R,id,cx-w/2,cy-h/2,w,h) so 't'/'b'/'l'/'r' hit the vertices
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.beginPath(); ctx.moveTo(cx, cy - h / 2); ctx.lineTo(cx + w / 2, cy); ctx.lineTo(cx, cy + h / 2); ctx.lineTo(cx - w / 2, cy); ctx.closePath(); ctx.fillStyle = tone(col, .8); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+}
+// subtitle-chunk start (scene-relative) of line n, chunk k — sync a visual to a phrase inside a long line
+function subT(id, n, k) { const s = TM.find(x => x.id === id), l = s && s.lines.find(l => l.n === n); return l && l.subs[k] ? l.subs[k][0] : 0; }
+// dim everything except one rounded rect (focus the eye); call LAST in the scene. hole = [x,y,w,h]
+function spotlight(hole, a, top = 160, bottom = 928) {
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha = a * .62; ctx.fillStyle = C.bg; ctx.beginPath(); ctx.rect(0, top, W, bottom - top); ctx.roundRect(...hole, 18); ctx.fill('evenodd'); ctx.restore();
+}
+// dashed polygon drawn progressively (k: 0→1) — e.g. "our territory" boundary around several boxes
+function dashPoly(P, k, col, a = 1) {
+  if (a <= 0 || k <= 0) return; let tot = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; tot += Math.hypot(q[0] - p[0], q[1] - p[1]); }
+  ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.setLineDash([12, 8]); ctx.beginPath(); ctx.moveTo(...P[0]);
+  let rem = tot * clamp(k); for (let i = 1; i <= P.length && rem > 0; i++) { const p = P[i - 1], q = P[i % P.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]), f = Math.min(1, rem / l); ctx.lineTo(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f); rem -= l; }
+  ctx.stroke(); ctx.restore();
+}

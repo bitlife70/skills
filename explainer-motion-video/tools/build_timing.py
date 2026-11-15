@@ -1,5 +1,5 @@
 """Build src/timing.js from lines.json + recorded narration.
-lines.json: [{"n":1,"scene":"D1","sub":"자막 원문","tts":"발음 표기","file":"voice/p01.wav"}, ...]
+lines.json (list order = playback order; n is a stable id, need not be sequential — insert a new line as n=50 without renumbering): [{"n":1,"scene":"D1","sub":"자막 원문","tts":"발음 표기","file":"voice/p01.wav"}, ...]
 Edit HL (highlight keywords), EXTRA (extra pause after line n), OVR (manual subtitle chunks for awkward splits), TITLE (silent title scene).
 Usage: python3 tools/build_timing.py   (run from the project root)"""
 import json, re, wave, numpy as np
@@ -34,7 +34,7 @@ def meta(f):
     a = np.abs(a); idx = np.where(a > a.max() * 0.02)[0]          # speech start/end at 2% of peak
     return {'dur': n / sr, 's': idx[0] / sr, 'e': idx[-1] / sr}
 for n, cs in OVR.items():
-    assert ''.join(cs).replace(' ', '') == L[n - 1]['sub'].replace(' ', ''), f'OVR {n} does not match its subtitle'
+    assert ''.join(cs).replace(' ', '') == {l['n']: l['sub'] for l in L}[n].replace(' ', ''), f'OVR {n} does not match its subtitle'
 scenes = {}; order = []
 for l in L:
     v = meta(l['file']); sc = l['scene']
