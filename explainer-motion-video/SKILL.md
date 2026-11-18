@@ -43,6 +43,7 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - 파일 구성:
   - `engine/core.js` — 팔레트, `txt`·`box`·`link`·`line`·`header`·`subtitle`·`progress`, **검증기 `verify`**
   - `engine/art.js` — 일러스트(person, robot, windowUI, paper, cylinder, rack, machine, laptop, check/cross, clockFace, hourglass, mapSheet, glyph, caption, leader, bubble, slab/stack …)
+  - `engine/art_plus.js` — 디테일 형상(bust 상반신 사람, aiPal 둥근 AI, factory, conveyor, dbArt, docArt, assetCrate, mapArt, controlDesk) ← 기본 그림체
   - `engine/helpers.js` — 시리즈에서 쌓은 소품(tower, card, miniBot, miniGraph, cloudShape, magnifier, calendar, lock, flag, star, shield, arrowArc, zigzagRight, coil, shipArt, waves, flow 공정라인, appTile, warnTri, diamond, glow, pill, spotlight, dashPoly, subT …)
   - `engine/main.js` — 타임라인·자막·진행바·페이드·`verifyAll`·`still`, 글자 배율(`window.FONT_SCALE`, 기본 1.22)
   - `templates/scenes.js` — 장면 작성 예시(D0 타이틀, D1 일러스트+구성도, D2 맺음). 에피소드마다 새로 쓴다.
@@ -115,6 +116,13 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - **가로 1920×1080, 30fps만.** 세로 금지.
 - 다크 남색 배경 + **파랑이 메인**인 파스텔 팔레트(core.js `C`: bg #0F1522, blue #8AB8FF, sky, mint, lav, peach, butter, rose, gray). **그래디언트 최소화**, 단순한 플랫 도형.
 - **슬라이드처럼 만들지 않는다.** 오브젝트·도형·일러스트가 주인공이고, 글자는 설명용. 스토리를 풀 땐 사람·로봇·건물·서버·문서·달력·지구 같은 형상으로 직관적으로 보여 주고, 구조 설명이 필요할 때만 박스와 선(시스템 구성도)을 쓴다 — 구성도는 전문적으로 보이는 장점이 있다.
+- **형상은 '단순 도형'보다 한 단계 디테일하게**(사용자 확정, 2026-11): `engine/art_plus.js`의 형상을 기본으로 쓴다.
+  - 사람 = `bust()` **상반신**(머리·어깨까지, 다리·전신 X). 직무는 소품 하나로 구분: FDE 헤드셋 · 온톨로지 태블릿 · 에이전트 엔지니어 노트북 · 평가 체크리스트 · 운영 렌치. 표정은 눈과 작은 미소만.
+  - 긴 머리는 **머리 뒤 한 덩어리**(옆머리를 따로 붙이면 윗머리와 끊겨 살이 보인다고 지적받음).
+  - AI = `aiPal()` **둥글고 귀여운 캐릭터**: 큰 동그란 머리 + 화면 얼굴(둥근 눈·미소) + 작은 달걀 몸통, 팔다리·바퀴 없음, 살짝 떠서 둥실. **볼터치(볼 색) 없음.** 각진 로봇(`agentBot`)은 쓰지 않는다.
+  - 사물: `factory`(톱니 지붕·굴뚝 연기·창·셔터) · `conveyor` · `dbArt`(단·표시등) · `rack` · `docArt`(접힌 모서리) · `assetCrate`(재사용 자산 상자) · `mapArt`(접힌 지도=온톨로지) · `controlDesk`(모니터 3대 관제). 모두 플랫 파스텔 + 어두운 면 하나 + 얇은 외곽선, 그래디언트 없음, 바닥 그림자(`shadowEl`).
+  - 연기·컨베이어·표시등·눈 깜빡임처럼 `o.t`로 작은 움직임을 준다(프레임은 여전히 t의 순수 함수).
+  - **그림체를 바꿀 땐 영상 제작 전에 '기존 vs 개선' 비교 이미지와 적용 예시 장면을 먼저 보여 주고 승인받는다.**
 - **글자는 멀리서도 보이게**: `FONT_SCALE 1.22`(자막 ≈41px, 장면 제목 ≈41px), 화면 안 설명 글자는 실제 22~24px 이상(코드 size ≥ 18~20). 작은 꼬리표도 18 이상.
 - 화면 구성: 왼쪽 위 장(막) 라벨 + 제목(`header`), 아래 자막 영역(y ≥ 930 비움), 맨 아래 진행바(타이틀 제외).
 - 타이틀 장면: 작은 시리즈 라벨 → 큰 2줄 제목(둘째 줄 파랑) → 부제, 오른쪽에 상징 일러스트.
@@ -214,4 +222,5 @@ NOSUB_LAST=2 python3 tools/mix.py "시리즈_편이름_가로_1920x1080.mp4" "�
 - 원인 설명은 정확하게: "빅테크가 빨리 들어왔다" → 기존 클라우드 계약·계정 위에 환경만 켜면 되는 **클라우드 사업자 강점** + FDE 투입. 하나만 말하면 지적받는다.
 - 레거시는 대표 이름 두 개로 끝내지 않는다(ERP·MES·SCM + 설비·품질·물류·회계 …).
 - 경쟁사는 적으로만 그리지 않는다. 관점을 바꾸면 파트너(확정은 실선, 잠정은 점선 + '(잠정 파트너)'), 상생 구조는 양방향 화살표로 서로 주고받는 것을 각각 라벨로.
+- 비공식·내부 시제품 이름(예: 영업용 프로토타입)은 영상에 쓰지 말고, 공식 플랫폼의 '개선된 프로토타입'처럼 표현한다.
 - 사용자가 준 구조도(excalidraw 등)가 있으면 배치·연결을 그대로 따르고, 말로 덧붙인 구성요소(예: 모니터링·토큰 관리·하네스·온톨로지)를 그 안에 칩으로 넣는다.

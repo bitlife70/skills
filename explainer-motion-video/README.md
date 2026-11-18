@@ -16,6 +16,7 @@
 | `templates/` | 예시 장면(`scenes.js`), 예시 타이밍, 썸네일 템플릿 |
 | `tools/check.mjs` | 0.25초 간격 전 장면 검증 + 스틸 캡처 |
 | `tools/render.mjs` | 장면별 mp4 렌더(병렬, 기존 파일 건너뜀) |
+| `engine/art_plus.js` | 디테일 형상 세트(기본 그림체) |
 | `tools/build_timing.py` | 녹음 파일 → 줄 시작 시각·자막 분할(`src/timing.js`) |
 | `tools/mix.py` | 내레이션 믹스·라우드니스·SRT·장면 연결·합성 |
 | `tools/thumb.mjs` | 썸네일 PNG |
@@ -33,6 +34,7 @@ ONLY=D1 SRC=src node tools/render.mjs                                      # _sc
 필요: Node 18+, Playwright(Chromium), ffmpeg, Python 3 + numpy, Pillow(썸네일 축소).
 
 ## 변경 이력
+- 2026-11-18 — 그림체 업그레이드: `engine/art_plus.js` 추가(상반신 사람 `bust`, 둥근 AI 캐릭터 `aiPal`(볼터치 없음), 공장·컨베이어·DB·문서·자산 상자·접힌 지도·관제 책상). SKILL.md에 형상 규칙과 '그림체 변경 시 비교 이미지 먼저 승인' 절차 추가
 - 2026-11-15 — 바이브코딩 편 제작에서 다듬은 내용 반영
   - 소품 추가: `appTile`, `warnTri`, `diamond`, `glow`, `pill`, `spotlight`(나머지를 어둡게 해 시선 모으기), `dashPoly`(점선 영역 경계 그리기), `subT`(긴 문장 안 특정 구절 시각)
   - `build_timing.py`: `n`을 고정 ID로 처리 — 문장 끼워 넣기 시 번호 재부여 불필요
