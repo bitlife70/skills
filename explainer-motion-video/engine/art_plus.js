@@ -163,7 +163,7 @@ function controlDesk(x, g, s, col, o = {}) {
 }
 
 // ---- v2 (feedback): simpler bust person, round cute AI character ----
-// bust person: head + shoulders (no legs). g = bottom of bust. props: laptop | tablet | clipboard | headset | wrench | none
+// bust person: head + shoulders (no legs). g = bottom of bust. props: laptop | tablet | clipboard | headset | wrench | plug | gear | none
 function bust(x, g, s, col, o = {}) {
   const a = o.a ?? 1; if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(x, g); ctx.scale(s, s);
   rrect(-36, -54, 72, 54, [28, 28, 8, 8]); _f(tone(col, .35), col, 1.5);
@@ -182,6 +182,9 @@ function bust(x, g, s, col, o = {}) {
     ctx.strokeStyle = C.mint; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-8, -6 + i * 8); ctx.lineTo(-6, -4 + i * 8); ctx.lineTo(-3, -8 + i * 8); ctx.stroke(); ctx.fillStyle = '#9AA6BA'; ctx.fillRect(0, -7 + i * 8, 8, 2.4); } ctx.restore(); }
   if (p === 'headset') { ctx.strokeStyle = '#C9D3E2'; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.arc(0, -84, 23, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); rrect(-26, -90, 7, 14, 3); _f(col); rrect(19, -90, 7, 14, 3); _f(col);
     ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-22, -77); ctx.quadraticCurveTo(-17, -66, -7, -68); ctx.stroke(); }
+  if (p === 'plug') { ctx.save(); ctx.translate(0, -22); ctx.strokeStyle = '#B9C4D6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-30, 10); ctx.quadraticCurveTo(-20, -12, -8, -4); ctx.stroke();
+    rrect(-10, -14, 20, 20, 4); _f(col); ctx.fillStyle = '#E6ECF5'; ctx.fillRect(10, -10, 9, 3.5); ctx.fillRect(10, -1, 9, 3.5); ctx.restore(); }
+  if (p === 'gear') { ctx.save(); ctx.translate(0, -24); ctx.beginPath(); for (let i = 0; i < 16; i++) { const an = i * Math.PI / 8, r = i % 2 ? 11 : 15; ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.closePath(); _f('#C9D3E2'); ctx.beginPath(); ctx.arc(0, 0, 5, 0, TAU); _f(tone(col, .3)); ctx.restore(); }
   if (p === 'wrench') { ctx.save(); ctx.translate(30, -26); ctx.rotate(.45); rrect(-3.5, -6, 7, 30, 2); _f('#B9C4D6'); ctx.beginPath(); ctx.arc(0, -10, 9, 0, TAU); _f('#B9C4D6'); ctx.fillStyle = tone(col, .35); ctx.fillRect(-3.5, -19, 7, 9); ctx.restore(); }
   ctx.restore();
 }
