@@ -92,6 +92,8 @@ SRC=src node tools/check.mjs all '[["D1",12]]' _stills   # → VERIFY OK + 스�
 - 파일은 사용자 PC `C:\Users\User\workspace\typecast_output\`에 저장된다. 가져오기:
   1. `device_bash`: `cd "$HOME/mnt"; D=motion_graphic_playground/<프로젝트>; mkdir -p $D/voice_<편> $D/_scratch; i=1; for f in $(ls typecast_output/<날짜-시각 접두>*.wav | sort); do cp "$f" $D/voice_<편>/p$(printf %02d $i).wav; i=$((i+1)); done; cd $D && tar cf _scratch/voice_<편>.tar voice_<편>`
   2. `device_stage_files`로 tar를 올리고 → 작업공간에서 `tar xf /mnt/user-data/uploads/.../voice_<편>.tar`
+- **데스크톱이 연결되지 않아 Typecast를 못 쓸 때**(Typecast 도구가 없음 · 클라우드 환경에서 api.typecast.ai 차단): 멈추지 말고 `tools/tts_fallback.py`(Supertonic 3, 오프라인 CPU)로 임시 내레이션을 만들어 영상을 먼저 완성한다. 사용자가 고른 4종 중에서만 쓴다 — 여성 **5번**(`f5`) > 여성 1번(`f1`), 남성 **10번**(`m10`) > 남성 7번(`m7`). 기본은 남성 10번, 여성 목소리를 원하면 여성 5번. 속도 1.25, steps 16. 결과물·README에 '임시 음성'이라고 밝히고, 데스크톱이 연결되면 같은 `lines.json`으로 필재 녹음해 교체한다(타이밍만 다시 빌드 → 전 장면 재렌더).
+  - 숫자·영문은 Typecast와 같은 `tts` 표기(아이티·에이아이·오대·이십 년…)를 그대로 쓴다. 이 엔진은 앞뒤 무음이 조금 더 길어 시작 시각이 0.2초쯤 늦게 잡히지만 빌더가 알아서 맞춘다.
 - 수정 녹음은 `v04b`, `q01`처럼 이름을 바꿔 같은 폴더에 두고(원본 덮어쓰기 금지), 수정분만 tar로 묶어 올린다. `lines.json`의 `file`로 줄마다 어떤 파일을 쓸지 지정하므로 나머지는 재녹음하지 않는다.
 - **문장을 끼워 넣을 땐 번호를 다시 매기지 않는다.** `n`은 고정 ID라서 새 줄은 `n=50, 51…`로 원하는 위치에 넣는다(재생 순서 = 리스트 순서). 그래야 `OVR`·`EXTRA`·장면 코드의 `subT(장면, n, k)` 참조가 깨지지 않는다.
 - 사실 확인이 필요한 기술 설명(예: "MCP Apps = MCP 서버가 도구 결과와 함께 UI 리소스를 보내고 호스트가 대화창에 띄움")은 웹으로 확인한 뒤 내레이션에 넣는다.
