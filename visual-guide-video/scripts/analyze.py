@@ -194,6 +194,8 @@ def main():
     os.makedirs(os.path.join(args.out, "sheets"), exist_ok=True)
     bars = [parse_bar(b) for b in args.bar]
 
+    from media import ensure_cfr
+    args.video = ensure_cfr(args.video)  # VFR 화면녹화 → CFR (시각 = 실제 타임스탬프)
     cap = cv2.VideoCapture(args.video)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     w, h = int(cap.get(3)), int(cap.get(4))

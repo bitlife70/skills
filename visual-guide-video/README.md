@@ -9,6 +9,8 @@
 | `vlog` | 일상·가족 행사·여행 | 클라이맥스 **슬로모션 + 꽃가루·하트·반짝이 파티클**, 흔들리는 구간 **빨리감기(모션블러)**, 사진 순간 **정지 + 폴라로이드**, 카운트다운 팝업, 사진 콜라주 아웃트로, 따뜻한 색보정 |
 | `anim` | 애니메이션 | 귀여운 팝업·스티커, 결정적 장면 정지, 선명한 색보정 |
 | `promo` | 광고·홍보·여행 필름 | 원본에 박힌 **글씨 지우기**(같은 장면 프레임으로 복원 + 카메라 이동 보정) → 다국어 **광고 타이포**(히어로·챕터·낙관 도장), **먹물 번짐 전환**, 해·달 **빛 번짐·렌즈 플레어**, 꽃잎·단풍·반딧불 파티클, 시네마 레터박스, 국악풍 **zen** 음악 에너지 곡선 |
+| `screen` + recut | 긴 시연 → 3~5분 발표·소개 영상 | 장면 **재배치·압축**(recut), 타이틀·문제 제기·효과 요약 **슬레이트**, **챕터 카드**, 화면 주인공 태그, 건너뜀 알림, 성우 내레이션 |
+| `screen` + 내레이션 주도 | 여러 녹화를 섞은 「하루 일과」형 시연 (약 4분) | **문장 길이로 컷 길이 자동 산정**, 여러 원본 섞기, **누구 화면인지**(테두리·이름판·밀어내기 전환), 개인정보 **흐림**, 고지 문구, 시각 칩, **외부 성우용 대본·타임라인**, 메모리 아끼는 **분할 렌더** |
 
 공통 기능
 - 🎯 움직이는 대상 **추적**(키프레임 보간 + OpenCV 자동 추적 + 템플릿 매칭 + 부모 트랙 따라가기). 말풍선·줌·하이라이트·파티클이 대상을 따라갑니다
@@ -16,6 +18,7 @@
 - 🎵 numpy로 합성한 **배경음** 5가지 스타일: pop / epic / chill / cute / zen(가야금·대금·장구·북, 장면별 에너지 arc). 섹션이 자동으로 배치되고 drop 시점을 지정할 수 있으며, 원하는 시각에 스크래치로 끊을 수 있습니다
 - 🔊 **원본 소리 유지**(슬로모션·정지 구간 자동 처리) + 효과음 라이브러리(타격·폭발·쇳소리·슬픈 트롬본·심장 박동 등)
 - 🎙️ 선택 옵션: **성우 내레이션**(Edge 신경망 TTS / Windows 오프라인 TTS), 슬롯에 맞춘 속도 조절, 자동 덕킹
+- 🕒 **VFR 화면녹화 자동 보정**: 가변 프레임레이트 원본을 CFR 사본으로 바꿔 모든 시각이 실제 타임스탬프와 일치합니다
 - 🧩 **커스텀 훅**: 새 효과를 엔진 수정 없이 `timeline.py` 안의 함수로 추가합니다
 - 📐 출력 해상도·fps·화질 지정(예: 720p 30fps), **세로 쇼츠(1080×1920)** 캔버스 + 흐린 배경 띠 레이아웃, 병렬 렌더링, `.srt` 자막 동시 출력
 
@@ -50,6 +53,19 @@ python $S/tracks.py timeline.py                                           #    �
 python $S/build.py timeline.py --preview 3.5,7.4,26                       # 4) 미리보기 (원본 시각)
 python $S/build.py timeline.py --preview-out 16.6,36.2                    #    미리보기 (출력 시각: 정지·슬로모션)
 python $S/build.py timeline.py [--voice edge]                             # 5) 최종 렌더
+
+# 긴 시연 → 발표 영상
+python $S/frames.py demo.mp4 478:532:1 --out build/dense.jpg --cols 4     # 1초 간격 접촉 시트
+python $S/narr_len.py narr.txt --rate +8%                                 # 내레이션 문장 길이 (컷 설계 전)
+cp ~/.claude/skills/visual-guide-video/recipes/product_pitch_cuts.py cuts.py && python $S/recut.py cuts.py   # 편집본
+cp ~/.claude/skills/visual-guide-video/recipes/product_pitch.py timeline.py && python $S/build.py timeline.py --voice edge
+
+# 내레이션 주도 시연 (recipes/narrated_demo/ 4개 파일을 프로젝트 폴더로 복사)
+python $S/narr_len.py narr.txt --rate +18%                                # 원고 → narr_len.json (컷 길이의 기준)
+python $S/recut.py cuts.py --list && python $S/recut.py cuts.py --workers 2   # 여러 원본 → build/edit.mp4
+python $S/build.py timeline.py --preview-out 3,12,40                      # 미리보기
+python $S/render_segmented.py timeline.py --seg 600 --workers 1           # 최종 (구간별 렌더·이어하기)
+python $S/voice_pack.py timeline.py                                       # 외부 성우용 대본·타임라인(csv/json/txt/md)
 ```
 
 | 옵션 | 설명 |
@@ -67,8 +83,10 @@ python $S/build.py timeline.py [--voice edge]                             # 5) �
 - [`recipes/promo_shorts.py`](recipes/promo_shorts.py): 30초 세로 쇼츠. 원본 구간과 출력 길이만 적으면 배속이 역산돼 모든 전환이 박자(마디)에 떨어지고, 먹물 위로 계절 단어가 '쾅' 찍힙니다.
 - [`recipes/promo_film.py`](recipes/promo_film.py): 광고·홍보 필름. 장면 목록(구간·배속·챕터 문구·낙관·파티클·에너지)과 전환 시각을 넣으면 오프닝 카피 → 히어로 타이틀 → 챕터 → 먹물 전환 → 엔드 카드와 음악 곡선이 맞춰집니다.
 - [`recipes/event_vlog.py`](recipes/event_vlog.py): 생일·파티 브이로그. 클라이맥스(촛불 끄기)를 넣으면 슬로모션·꽃가루·음악 시작이 맞춰지고, 사진 카운트다운은 정지 + 폴라로이드로, 끝은 사진 콜라주 아웃트로로 처리됩니다.
+- [`recipes/product_pitch.py`](recipes/product_pitch.py) + [`product_pitch_cuts.py`](recipes/product_pitch_cuts.py): 긴 시연 → 발표 영상. 컷 목록으로 편집본을 만들고, 타이틀·챕터·화면 주인공·건너뜀 알림·효과 요약 슬레이트·아웃트로가 자동으로 들어갑니다.
+- [`recipes/narrated_demo/`](recipes/narrated_demo/) (`narr.txt` · `narr_len.json` · `cuts.py` · `timeline.py`): 내레이션 주도 시연. 원고 한 곳에서 컷 길이·내레이션·자막 시각이 모두 나오고, 여러 원본(다시 찍은 장면·크기가 다른 녹화)을 섞으며, 사람마다 화면 테두리·이름판과 밀어내기 전환, 개인정보 흐림, 고지 문구, 챕터 시각 칩이 들어갑니다.
 
-레시피는 실제 화면녹화(59초), 게임 녹화(2580×1080 93초 → 720p 91초), 휴대폰 영상(50초), 수묵 애니메이션(116초 → 85초 영어 광고)으로 검증했습니다. 영상과 개인 정보는 저장소에 포함하지 않습니다.
+레시피는 실제 화면녹화(59초), 게임 녹화(2580×1080 93초 → 720p 91초), 휴대폰 영상(50초), 수묵 애니메이션(116초 → 85초 영어 광고), 16분 시연 녹화(→ 4분 발표 영상), 시연 녹화 3개를 섞은 4분 시연 영상(8차 수정까지)으로 검증했습니다. 영상과 개인 정보는 저장소에 포함하지 않습니다.
 
 ## 폰트
 

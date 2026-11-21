@@ -48,7 +48,18 @@ def _decode(path):
     return x[max(0, nz[0] - 400): nz[-1] + 2000] if len(nz) else x
 
 
+def _trust_os_certs():
+    """사내 SSL 검사 프록시(자체 서명 루트 인증서) 환경에서 Edge TTS 접속이 CERTIFICATE_VERIFY_FAILED 로
+    실패하는 문제: OS 인증서 저장소를 쓰게 한다 (`pip install truststore`, 없으면 그대로 진행)."""
+    try:
+        import truststore
+        truststore.inject_into_ssl()
+    except ImportError:
+        pass
+
+
 def _synth_edge(text, voice, rate, out):
+    _trust_os_certs()
     import edge_tts
 
     async def run():
