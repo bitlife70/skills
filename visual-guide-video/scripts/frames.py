@@ -38,7 +38,11 @@ def main():
     ap.add_argument("--cols", type=int, default=3)
     args = ap.parse_args()
     src = ensure_cfr(args.video)
-    tw, th = 1920 // args.cols, 1080 // args.cols
+    cap = cv2.VideoCapture(src)
+    vw, vh = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920, int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
+    cap.release()
+    tw = 1920 // args.cols                       # 시트 폭은 그대로, 칸 높이는 원본 비율대로 (세로 쇼츠·21:9 도 찌그러지지 않게)
+    th = max(2, int(round(tw * vh / vw / 2)) * 2)
 
     def grab(t):
         r = subprocess.run([ffmpeg_exe(), "-loglevel", "error", "-ss", f"{t:.3f}", "-i", src, "-frames:v", "1",

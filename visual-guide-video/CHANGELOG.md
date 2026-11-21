@@ -10,6 +10,7 @@
 - `scripts/render.py` — 같은 자리에 양쪽이 넣은 호출을 모두 유지: `story.setup` → `promo.setup`, `story.layer` → `promo.layer_type`.
 - `scripts/tl.py`, `templates/timeline_template.py` — 자동 병합(겹치는 줄 없음).
 - `SKILL.md`, `README.md` — 프로필 설명·레시피 표·파일 구성·검증 문구를 양쪽 모두 담도록 합침.
+- `scripts/frames.py` — 시트 칸을 원본 비율대로(이전엔 16:9 고정이라 세로 쇼츠·21:9 출력이 찌그러져 보였음). 16:9 영상의 시트는 전과 동일.
 
 **검증** (합성 테스트 영상): 같은 타임라인을 원래 엔진과 병합 엔진으로 미리보기 → 픽셀 차이 0
 - `recipes/narrated_demo/` — 1.2 엔진과 동일 (8컷)
