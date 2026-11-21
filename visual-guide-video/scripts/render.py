@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 import fx
+import story
 import gfx
 import promo
 from gfx import (CHIP_W, Canvas, Sprite, card_sprite, chip_sprite, clamp01, dim_outside, draw_arrow, draw_dot,
@@ -221,6 +222,7 @@ def setup(tl):
     TL = tl
     gfx.set_theme(tl.theme)
     fx.setup(tl)
+    story.setup(tl)
     promo.setup(tl)
     if tl.hud:
         S.hud = _hud_sprites(tl.hud)
@@ -575,6 +577,7 @@ def render_frame(frame, t):
     cv.clear()
     ctx = Ctx(t=t, ts=ts, raw=frame, view=view, cv=cv, tl=TL, frame=img)
     img = _custom(TL.custom_frame_fx, ctx, img)
+    img = story.frame(img, t)
     img = layer_title(cv, t, img)
     img = layer_highlights(cv, view, t, img, ts)
     layer_links(cv, view, t)
@@ -590,6 +593,7 @@ def render_frame(frame, t):
     fx.layer_pops(cv, view, t, ts)
     fx.layer_badges(cv, t)
     img = _custom(TL.custom_layers, ctx, img)
+    story.layer(cv, t)
     promo.layer_type(cv, t)
     layer_subtitle(cv, t)
     layer_progress(cv, t)

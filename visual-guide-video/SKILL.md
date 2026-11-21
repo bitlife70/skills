@@ -1,6 +1,6 @@
 ---
 name: visual-guide-video
-description: 영상(mp4)을 분석해 코드로 연출을 입힌 해설·하이라이트 영상을 만든다. 화면녹화(줌인·클릭 리플·풍선 도움말·HUD), 게임 플레이(돋보기 확대·피격 타격감·슬로모션·정지 화면·팝업 텍스트·HP 게이지 분석), 브이로그·애니메이션(대상 추적 말풍선·스티커·색보정·배속), 광고·홍보·여행 필름(원본 글씨 지우기·다국어 광고 타이포·낙관·먹물 전환·빛 번짐·레터박스)을 영상 유형별 프로필로 처리하고, 신스로 합성한 배경음(pop/epic/chill/cute/zen 국악풍)·효과음·원본 소리·선택적 성우 내레이션(TTS)을 믹스한다. "화면녹화에 설명 효과 넣어줘", "게임 영상 재밌게 편집", "보스전 하이라이트", "브이로그 자막·효과", "클릭할 때 줌인·풍선도움말", "자막·배경음·성우 입혀줘", "광고 영상으로 만들어줘", "홍보 영상 영어판", "원본 글씨 지우고 영어로", "screen recording explainer", "gameplay highlight edit", "promo film" 등에 사용한다.
+description: 영상(mp4)을 분석해 코드로 연출을 입힌 해설·하이라이트·발표·광고 영상을 만든다. 화면녹화(줌인·클릭 리플·풍선 도움말·HUD), 게임 플레이(돋보기 확대·피격 타격감·슬로모션·정지 화면·팝업 텍스트·HP 게이지 분석), 브이로그·애니메이션(대상 추적 말풍선·스티커·색보정·배속), 긴 시연 → 발표 영상(recut·슬레이트·챕터 카드·내레이션 주도 시연), 광고·홍보·여행 필름(원본 글씨 지우기·다국어 광고 타이포·낙관·먹물 전환·빛 번짐·레터박스)을 영상 유형별 프로필로 처리하고, 신스로 합성한 배경음(pop/epic/chill/cute/zen 국악풍)·효과음·원본 소리·선택적 성우 내레이션(TTS)을 믹스한다. "화면녹화에 설명 효과 넣어줘", "게임 영상 재밌게 편집", "보스전 하이라이트", "브이로그 자막·효과", "클릭할 때 줌인·풍선도움말", "자막·배경음·성우 입혀줘", "긴 시연 영상을 5분 발표 영상으로", "시연 영상 여러 개 섞어서 4분 발표 영상", "성우용 대본·타임라인 뽑아줘", "제품 소개 영상", "광고 영상으로 만들어줘", "홍보 영상 영어판", "원본 글씨 지우고 영어로", "screen recording explainer", "gameplay highlight edit", "promo film" 등에 사용한다.
 ---
 
 # Visual Guide Video
@@ -12,8 +12,9 @@ description: 영상(mp4)을 분석해 코드로 연출을 입힌 해설·하이�
 ## 0. 준비
 
 ```bash
-pip install -r "$SKILL_DIR/requirements.txt"   # opencv-python imageio-ffmpeg numpy scipy pillow edge-tts
+pip install -r "$SKILL_DIR/requirements.txt"   # opencv-python imageio-ffmpeg numpy scipy pillow edge-tts truststore
 ```
+**가변 프레임레이트(VFR) 원본**: 화면녹화는 대부분 VFR 이라 '프레임 번호/fps' 시각이 실제와 수 초씩 어긋난다(16분 녹화에서 최대 7초). 모든 스크립트가 `media.ensure_cfr()` 로 원본을 열어 VFR 이면 `<영상 폴더>/.vguide/*.cfr30.mp4` 사본을 한 번 만들어 쓴다 → 시트·크롭·미리보기·렌더의 시각 = 실제 타임스탬프. 첫 실행에 변환 시간이 든다(16분 ≈ 2~3분).
 ffmpeg 는 `imageio-ffmpeg` 번들을 쓴다. 한글·이모지 폰트는 OS 기본을 자동 탐색한다(`VGUIDE_FONT_BOLD/REGULAR/EMOJI` 로 지정 가능).
 작업 폴더는 영상 옆에 둔다: `project/timeline.py`, 산출물 `project/build/`, `project/output/`.
 
@@ -32,11 +33,14 @@ python "$SKILL_DIR/scripts/analyze.py" VIDEO --out build/analysis
 | `anim` | 애니메이션·캐릭터 영상 | cute 음악, vivid 색보정 | POPS(funny), STICKERS, CALLOUTS, FREEZE |
 | `promo` | 광고·홍보·여행·브랜드 필름 | epic 음악(크게), 원본 소리 끔, 30fps | TYPE(광고 타이포·낙관), CLEANUP(원본 글씨 지우기), INK 전환, GLOWS, LETTERBOX, 계절 파티클, zen 음악 arc |
 
+**긴 시연 → 발표·소개 영상**(10분 넘는 녹화를 3~5분으로, 순서 재배치)은 `screen` 프로필 + **recut**(`scripts/recut.py`) + **스토리 그래픽**(SLATES·CHAPTERS·TAGS·NOTICES·BADGES) 조합이다 → 아래 3-1절, `recipes/product_pitch.py`.
+
 유형마다 **무엇을 설명할지**가 다르다:
 - **screen**: "지금 어디를 누르고 무엇이 바뀌는가" → 클릭 지점 줌, 바뀐 패널 화살표, 상태 카드.
 - **game**: "무슨 일이 벌어졌나(공격·방어·피격·회복·보스 패턴)" + 재미 → 타격감, 리액션 팝업, 멀리 있는 대상 돋보기, 결정적 순간 정지 해설, 지루한 이동 구간 빨리감기.
 - **vlog**: "어디서 무엇을 하는가" + **감정** → 설명보다 분위기. 행사(생일·여행·졸업)의 클라이맥스를 슬로모션·파티클로 키우고, 흔들리는 이동 구간은 빨리감기, 사진 찍는 순간은 정지 + 폴라로이드, 끝은 사진 콜라주 아웃트로.
 - **anim**: 캐릭터 리액션 강조 → 귀여운 팝업, 스티커, 결정적 표정 정지.
+- **pitch(발표)**: "누구의 어떤 불편이 사라지는가" → 문제 제기 → 챕터별 요청·결과·다른 시스템 반영 화면 → 효과 요약. 기술 자랑보다 효과 문장.
 - **promo**: "보는 사람이 가고 싶고, 사고 싶게" → 자막 대신 **짧은 광고 카피**(오프닝 2줄 → 히어로 타이틀 → 장면별 챕터 → 엔드 카드), 큰 장이 바뀔 때 먹물 번짐 같은 시그니처 전환, 음악 에너지 곡선(조용 → 고조 → 절정 → 여운 → 피날레). 원본에 다른 언어 글씨가 박혀 있으면 지우고 목표 언어로 교체(국제판).
 
 **공통 편집 원칙 (사용자가 가장 좋아한 부분)**: 불필요한 구간(이동·로딩·카메라가 흔들리는 구간)은 **빨리감기**, 중요한 순간은 **정지(프리즈)** 해서 설명이나 장식을 넣는다. 분석 단계에서 각 구간을 "핵심 / 연결 / 군더더기"로 분류하고 시작한다.
@@ -55,13 +59,53 @@ python "$SKILL_DIR/scripts/analyze.py" VIDEO --out build/analysis --bar player:3
 ```
 - 게이지 박스는 **바 안쪽 한 줄(높이 4~8px)** 로 잡는다. 흰 게이지는 기본 `light`, 색 게이지는 `:any`.
 - `bar_<이름>.png`(카이모그래프: 세로=시간)를 Read 로 보고 이벤트가 맞는지 확인한다. 피격 순간 게이지가 붉게 번쩍이거나 연출로 HUD 가 사라지면 오탐이 생기므로, `graph.png` 와 시트로 교차 확인한다.
-- 시트는 2초 간격이다. 싸움 구간은 0.3~0.6초 간격으로 프레임을 더 뽑아 **무슨 동작인지(공격/구르기/피격/변신)** 직접 해석한다.
+- 시트는 2초 간격이다(screen 은 4초). 촘촘히 봐야 하면 `frames.py VIDEO a:b:1 --out x.jpg --cols 4` (1초 간격 접촉 시트, 편집본·최종 출력에도 쓴다). 싸움 구간은 0.3~0.6초 간격으로 프레임을 더 뽑아 **무슨 동작인지(공격/구르기/피격/변신)** 직접 해석한다.
 
 **정확한 좌표**: 반드시 눈금 크롭으로 측정한다.
 ```bash
 python "$SKILL_DIR/scripts/crops.py" VIDEO --t 7.4,13.5 --box 0,760,420,240 --out build/crops.jpg  # 영역, 50px 눈금
 python "$SKILL_DIR/scripts/crops.py" VIDEO --t 12 --full --out build/grid.jpg                    # 전체, 100px 격자
 ```
+
+## 3-1. 긴 시연 → 발표 영상: recut + 스토리 그래픽
+
+1. **장면 메모**: 시트를 보며 구간마다 "무슨 요청 → 무슨 결과 → 어느 시스템에 반영" 을 적는다. 애매하면 `frames.py VIDEO a:b:1`.
+2. **내레이션 먼저**: 원고(한 줄 한 문장, 사용자 발화는 `[대괄호]`)를 쓰고 `narr_len.py narr.txt --rate +8%` 로 문장 길이를 잰다.
+   4분 영상 ≈ 내레이션 120초 + 챕터 카드·슬레이트·결과 읽는 시간. 이 길이가 컷 길이를 정한다.
+3. **컷 파일** (`recipes/product_pitch_cuts.py` → `cuts.py`): `(id, a, b, 배속[, 앞정지[, 뒤정지]])`, `("id","img",경로,초)`, `("id","still",t,초)`.
+   대기·확인 대화("진행해")는 버리고, 입력 1.3~2.2배, 결과 1.0~1.2배, 짧은 대기 2.5~3.5배. 챕터 첫 클립 앞정지 = `CHAPTER_CARD`(2.4초).
+   `python recut.py cuts.py --list` → `python recut.py cuts.py` → `frames.py build/edit.mp4 <클립 중간 시각들>` 로 확인.
+4. **timeline.py** (`recipes/product_pitch.py`): `SRC = C.edit_rel(__file__)`, 시각은 `O(원본초)` / `S(클립)` / `E(클립)`.
+   - `SLATES` — 전면 카드(bg navy|blur): 타이틀(tokens), 문제 제기(lines), 효과 요약(pills). 원본의 설명용 검은 화면 구간을 배경으로 쓴다.
+   - `CHAPTERS` — 큰 번호 챕터 카드 + 상단 "[01] 제목" 태그. 부제는 효과 문장.
+   - `TAGS` — 우상단 "누구 화면인지"(여러 계정이 나오면 필수). `NOTICES` — "⏭ 대기 1분 생략" 같은 건너뜀 알림. `BADGES = C.badges()` — 배속 배지.
+   - 결과 화면: 줌 1.25~1.55 + HIGHLIGHTS 라벨, 기능 설명은 CARDS(카드와 하이라이트 시간 분리), 다른 시스템에 반영된 화면(메일·메신저)은 반드시 넣고 줌.
+5. 미리보기는 `--preview-out`(편집본 = 출력 시간축)으로 챕터마다 2~3장씩 본다.
+
+## 3-2. 내레이션 주도 시연 (여러 녹화 섞기 · 하루 일과형 · 약 4분) — `recipes/narrated_demo/`
+
+내레이션 문장이 컷 길이를 정하는 방식. 원고를 고치면 길이만 다시 재고 recut → 미리보기 → 렌더로 끝난다. 수정 요청이 여러 번 오가는 발표 영상에 맞다.
+
+1. `recipes/narrated_demo/` 의 4개 파일(`narr.txt`, `narr_len.json`, `cuts.py`, `timeline.py`)을 프로젝트 폴더로 복사한다. 판을 올릴 때마다 `narrN.txt`·`cutsN.py`·`timelineN.py` 로 새로 만들고(이전 판은 그대로 둠), `OUTPUT`·`EDIT` 이름에 판 번호를 넣는다.
+2. **원고** `narr.txt`: `키<TAB>문장`, 강조는 `[대괄호]`. 한 장면 = 한 문장. `python narr_len.py narr.txt --rate +18%` → `narr_len.json` (판마다 `narrN_len.json` 으로 이름을 바꿔 둔다). 4분 ≈ 내레이션 180초 + 카드·무음 슬레이트.
+3. **컷** `cuts.py`: `SOURCES`/`SOURCE_VF`/`DEFAULT_SOURCE` 로 여러 원본(다시 찍은 장면, 크기가 다른 녹화)을 섞고, `narrcuts.Planner` 의 `still(id, t, 문장키, 여유, 소스, card=)`·`clip(id, a, b, 배속, 문장키, 앞정지, 소스)` 로 적는다 — 길이는 문장 길이로 자동. 앞정지 = 챕터 카드(2.3초) 또는 사람 전환(0.6초). `recut.py cuts.py --list` 로 전체 길이를 맞춘다(넘치면 문장을 줄이거나 rate 를 올림, +22% 까지).
+4. **타임라인** `timeline.py`: `TEXT = narrcuts.read_narr(...)`, `AT = {키: S(컷) 또는 B(챕터 첫 컷)}`, `NARRATION, SUBTITLES = narrcuts.narration_and_subs(TEXT, AT, N, lead=0.25)`.
+   - `people` — 누구 화면인지: `set_people()` → `PERSONS=[(t0,t1,키)]` → 테두리·이름판·밀어내기 전환(`make_push_fx` + `make_person_layer(mode="push")`), 특정 장면 간판(`make_signboard_layer`).
+   - `overlays` — `make_blur_fx(BLUR)`(이메일·로그인 ID·사내 링크·무관한 내용 가리기, 줌을 따라감), `make_disclaimer_layer(고지문)`, `make_clock_layer({챕터시작: "🕗 08:50"})`.
+   - `CHAPTER_TITLE_SIZE = 112` + 보조 글 `""` → 카드에 제목만 크게(긴 제목은 자동 축소).
+5. 미리보기(`--preview-out`)로 장마다 확인 → 최종은 `render_segmented.py timeline.py --seg 600 --workers 1` (백그라운드, 타임라인을 바꿨으면 `build/segments`·`build/audio_final.wav` 먼저 삭제).
+6. 다른 성우·TTS 로 다시 녹음하려면 `voice_pack.py timeline.py` → `<OUTPUT>_내레이션_타임라인.csv/.json`·`_읽기대본.txt`·`대본.md`. 영어·약어 읽기는 `VOICE_READ`, 무음 구간은 `VOICE_SILENT` 로 준다. 녹음은 `voice/<키>.wav` 로 받는다.
+
+**피드백에서 굳어진 연출 규칙** (사용자가 거듭 고쳐 달라고 한 것들)
+- BGM 없음. 내레이션 + 자막 + 정지 화면마다 강조 박스 **한 곳**. 줌은 **입력 글**을 읽을 때만.
+- 강조 박스·기능 카드는 그 내용을 말하는 **자막과 같은 순간**에 뜬다(`hl(..., t0=B(id)+0.3)`, 카드 시작 = 문장 시작 + 길이×비율). 늦게 뜨면 어색하다.
+- 챕터 카드(2초 남짓)는 **제목만** — 보조 글은 못 읽는다. 시각 칩은 `🕗 08:50` 처럼 시각만.
+- 제목·간지 슬레이트는 **무음**(발표자가 말함), 간지는 글을 읽을 시간 8~10초.
+- 「요청 → 곧바로 추가 요청」 같은 어색한 연속 입력은 뒤의 것만 보여 주고 앞은 내레이션으로.
+- 「적용 → 결과」처럼 바뀌는 순간은 1.0~1.2배로 천천히. 배속 배지는 이름판과 겹치므로 끈다.
+- 장면에서 다루지 않는(뺀) 업무가 화면에 남으면 다른 프레임을 고르거나 흐림 처리. 이야기는 앞 장면에서 보여 준 업무로 이어 간다.
+- 사람 이름은 사용자가 정한 호칭 그대로(예: ○프로/○팀장). 추상어(「고리가 닫힌다」)·과장(「코드 0줄」) 대신 쉬운 말(「코딩 없이」). 제품명은 매번 같은 이름으로(「비서」 → 「제품명+비서」).
+- 시연용 모의 시스템·지어낸 숫자면 고정 고지 문구. 실제 기능이 아닌 연출(미리 넣은 장면)은 사용자에게 알리고 발표 때 밝힐지 정하게 한다.
 
 ## 3. timeline.py 작성
 
@@ -72,6 +116,8 @@ python "$SKILL_DIR/scripts/crops.py" VIDEO --t 12 --full --out build/grid.jpg   
 | `recipes/screen_walkthrough.py` | 화면녹화 튜토리얼·데모 | 클릭(시각·좌표·문구·바뀐 곳·카드), 강조할 영역, 자막 |
 | `recipes/game_boss_fight.py` | 게임 전투 하이라이트 | HP 게이지 위치, 피격(시각·남은 HP), 내 공격, 보스 다운, 회복, 사망/처치, 이동 구간, 해설 자막 |
 | `recipes/event_vlog.py` | 생일·기념일·파티 브이로그 | 클라이맥스 시각과 대상, 흔들리는 구간, 사진 카운트다운·정지 프레임, 손님 등장, 마지막 장면 |
+| `recipes/product_pitch.py` (+`product_pitch_cuts.py`) | 긴 시연 → 3~5분 발표·소개 영상 | 컷 목록, 제품명·한 줄 가치·강점, 챕터(제목·효과 문장), 화면 주인공, 내레이션 원고, 결과 강조 |
+| `recipes/narrated_demo/` (narr.txt · narr_len.json · cuts.py · timeline.py) | 여러 녹화를 섞은 내레이션 주도 시연(하루 일과형) | 원고, 원본들(SOURCES), 컷(원본 시각·문장키), 등장인물·화면 주인 구간, 강조 박스, 흐림 영역, 챕터·시각 |
 | `recipes/promo_shorts.py` | 30초 세로 쇼츠 (광고 몽타주) | 구간 목록(원본 구간·출력 길이), 장면별 패닝, 계절 단어·챕터 문구, 전환 종류 |
 | `recipes/promo_film.py` | 광고·홍보·여행 필름 | 오프닝 카피, 히어로·엔드 카드, 장면(구간·배속·챕터 문구·낙관·카메라·파티클·에너지·배경 소리), 먹물 전환 시각, 빛나는 대상, 지울 글씨 |
 
@@ -100,6 +146,7 @@ python "$SKILL_DIR/scripts/crops.py" VIDEO --t 12 --full --out build/grid.jpg   
 | `SOURCE_AUDIO` | 원본 소리(슬로모션 구간은 피치 하강, 정지 구간은 무음, 빨리감기 구간은 `fast_gain` 만큼 줄임) |
 | `MUSIC` | `style` pop/epic/chill/cute/zen, `arc`(zen: 장면별 에너지), `start`(이 시각부터 음악), `drop`, `end`(+`end_fx` scratch/fade/cut), `volume` |
 | `MASTER_GAIN_DB` | 최종 믹스 게인(리미터 전). 휴대폰 영상은 원본이 작아서 +3~5 dB |
+| `SLATES`, `CHAPTERS`, `TAGS`, `NOTICES`, `BADGES` | 스토리 그래픽(story.py): 전면 슬레이트, 챕터 카드+상단 챕터 태그, 우상단 화면 주인공 태그, 건너뜀 알림, 배속 배지 |
 | `CUSTOM_LAYERS`, `CUSTOM_FRAME_FX`, `CUSTOM_SFX` | **지시받은 새 효과**를 timeline.py 안 함수로 추가 (아래) |
 | `OUTPUT_SIZE`, `FPS`, `QUALITY` | 출력 해상도(예: 720p `(1280, 720)`), fps, CRF |
 | `CANVAS`, `BACKDROP` | 디자인 캔버스. 세로 쇼츠는 `CANVAS = (1080, 1920)` + `OUTPUT_SIZE = (1080, 1920)`. 가로 원본은 가운데 띠로 들어가고 여백은 `BACKDROP`(`"black"`, `"blur"`, `dict(kind="blur", tint=(r,g,b), amount=0.5)`). 화면을 꽉 채우려면 SHOTS 배율 ≈ 3.16 (= 1920 / 607.5) 로 줌하고 x 로 패닝 |
@@ -143,6 +190,8 @@ CUSTOM_SFX = [boss_roar]
 - 이모지는 컬러로 렌더링된다. 단 `▸ ✓ ✕` 같은 기호는 □ 로 깨지므로 이모지(✅ ✖️ 👉 ⏩ ⏸)나 `• → ·` 를 쓴다.
 - 자막은 한 줄 40자 안팎. 핵심어는 `[대괄호]` 로 강조. 정지 화면 해설 자막은 `(tf, tf, "...")` 처럼 정지 시각을 시작=끝으로 적으면 정지 동안만 뜬다.
 - 같은 순간에 팝업·말풍선·스티커를 3개 이상 겹치지 않는다. 팝업은 0.8~1.2초면 충분하다.
+- ZWJ 결합 이모지(👩‍💼 👨‍💻 등)는 두 글자로 쪼개져 보인다 → 단일 이모지(🙋 👤 🧑 🛡️)를 쓴다.
+- 아웃트로 stats 부제는 12자 이내(카드 폭 430px 에서 잘린다).
 
 **screen**
 - 카드와 하이라이트가 겹치지 않게 시간을 나눈다(카드 → 하이라이트). 카드는 다음 클릭 줌 전에 끝낸다.
@@ -197,7 +246,8 @@ python "$SKILL_DIR/scripts/build.py" timeline.py --preview-out 16.6,36.2     # �
   ```python
   import tl, music, build; t = tl.load("timeline.py"); m = music.build_music(t)[0] * t.music["volume"]; s = build.source_audio(t, m.shape[1])
   ```
-- **성우(선택)** `NARRATION = [(t, "문장")]` (없으면 자막을 읽음). `--voice edge`(Microsoft 신경망, 온라인 — **문장이 Microsoft 로 전송됨을 알린다**) / `--voice sapi`(Windows 오프라인). `build/voice_report.json` 에서 rate 가 +15% 를 넘거나 overflow 면 문장을 줄인다(한국어 ≈ 7음절/초).
+- **성우(선택)** `NARRATION = [(t, "문장")]` (없으면 자막을 읽음). `--voice edge`(Microsoft 신경망, 온라인 — **문장이 Microsoft 로 전송됨을 알린다**. 사내 SSL 검사 프록시에서 `CERTIFICATE_VERIFY_FAILED` 가 나면 `truststore` 설치로 OS 인증서 저장소를 쓴다 — voice.py 가 자동 적용) / `--voice sapi`(Windows 오프라인). `build/voice_report.json` 에서 rate 가 +15% 를 넘거나 overflow 면 문장을 줄인다(한국어 ≈ 7음절/초).
+- **외부 성우·TTS 로 바꿀 때** `python voice_pack.py timeline.py` → 문장별 시작·최대 길이·녹음용 읽기 문장(csv/json/txt/md). 사내망에서 외부 TTS API 가 막히면 우회하지 말고 사용자에게 알린다. API 키를 대화에 붙여 넣으면 저장하지 말고 키 교체를 권한다.
 
 ## 6. 최종 렌더링과 검증
 
@@ -206,9 +256,14 @@ python "$SKILL_DIR/scripts/build.py" timeline.py [--voice edge] [--workers 8]
 ```
 프레임을 나눠 여러 프로세스로 병렬 렌더링한 뒤 이어 붙인다(1분 1080p ≈ 2~3분, 8 workers). 백그라운드로 실행한다.
 
+**메모리가 부족하거나(VDI 등) 4분 넘는 영상**은 분할 렌더를 쓴다 — 구간마다 새 프로세스라 누수가 쌓이지 않고, 끊겨도 다시 실행하면 이어서 한다.
+```bash
+python "$SKILL_DIR/scripts/render_segmented.py" timeline.py --seg 600 --workers 1    # 타임라인을 바꿨으면 build/segments, build/audio_final.wav 먼저 삭제
+```
+
 **완료 전 확인 사항**
 - 마지막 줄 `[done] ... Ns (expected Ns), N MB` 에서 길이가 일치하는지, 로그에 Traceback 이 없는지 본다.
-- 출력에서 프레임 몇 장을 뽑아 확인한다: `ffmpeg -ss T -i out.mp4 -frames:v 1 f.png`
+- 출력에서 프레임 몇 장을 뽑아 확인한다: `frames.py output/out.mp4 10,40,77,150 --out build/final.jpg`
 - 음악·효과음은 직접 들을 수 없으므로 구간 RMS 로 확인하고, 사용자에게 직접 들어 보라고 말한다.
 
 ## 파일 구성
@@ -217,6 +272,16 @@ python "$SKILL_DIR/scripts/build.py" timeline.py [--voice edge] [--workers 8]
 |---|---|
 | `scripts/analyze.py` | 메타·유형 추정·장면 전환·소리 피크·게이지 이벤트·그래프·시트 |
 | `scripts/crops.py` | 원본 좌표 눈금 크롭 |
+| `scripts/frames.py` | 시각 목록(`a:b:간격` 가능) 접촉 시트 — 장면 확인·편집본·최종 출력 검수 |
+| `scripts/media.py` | VFR 원본 → CFR 사본 (모든 스크립트가 원본을 이걸로 연다) |
+| `scripts/recut.py` | 컷 파일 → 편집본(구간 재배치·배속·정지·이미지 삽입, `SOURCES` 여러 원본·소스별 전처리), `O/S/E/B` 시각 변환, 배속 배지 |
+| `scripts/narr_len.py` | 내레이션 원고 문장별 길이 측정(컷 설계 전에) |
+| `scripts/narrcuts.py` | 문장 길이로 컷 길이 자동 산정(`Planner.still/clip`), 원고 읽기, 내레이션·자막 시각 생성 |
+| `scripts/story.py` | 스토리 그래픽: SLATES, CHAPTERS(`CHAPTER_TITLE_SIZE` 로 제목만 크게), TAGS, NOTICES, BADGES |
+| `scripts/people.py` | 누구 화면인지: 사람 색 테두리·이름판, 밀어내기(push)/와이프 전환, 챕터 카드 사람 칩, 매달린 간판 |
+| `scripts/overlays.py` | 개인정보 흐림(줌 추적), 고정 고지 문구, 챕터 카드 시각 칩 |
+| `scripts/render_segmented.py` | 메모리 아끼는 분할 렌더(구간별 새 프로세스·이어하기) + SRT |
+| `scripts/voice_pack.py` | 외부 성우·TTS 용 내레이션 대본·타임라인(csv/json/txt/md) |
 | `scripts/tracks.py` | 대상 추적(키프레임 보간·OpenCV), 검증 시트 |
 | `scripts/remap.py` | 시간 리매핑(TRIM·SPEED·FREEZE) |
 | `scripts/build.py` | 미리보기 / 오디오 믹스(원본 소리 리매핑·리미터) / 병렬 렌더 / SRT |
@@ -229,4 +294,5 @@ python "$SKILL_DIR/scripts/build.py" timeline.py [--voice edge] [--workers 8]
 | `scripts/styles.py` | epic / chill / cute / zen BGM |
 | `scripts/voice.py` | TTS(edge/sapi), 슬롯 맞춤 속도, 덕킹 |
 | `templates/timeline_template.py` | 전체 스키마 설명이 달린 템플릿 |
-| `recipes/` | 유형별 레시피: screen_walkthrough, game_boss_fight, event_vlog, promo_film, promo_shorts |
+| `recipes/` | 유형별 레시피: screen_walkthrough, game_boss_fight, event_vlog, product_pitch(+_cuts), narrated_demo/, promo_film, promo_shorts |
+| `CHANGELOG.md` | 판별 변경 내역 |

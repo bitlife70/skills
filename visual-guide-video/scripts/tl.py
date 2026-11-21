@@ -106,7 +106,9 @@ def load(path):
     t.module = m
     t.timeline_path = path
     t.base = base
-    t.src = os.path.join(base, m.SRC)
+    from media import ensure_cfr
+    t.src_original = os.path.join(base, m.SRC)
+    t.src = ensure_cfr(t.src_original)  # VFR 원본은 CFR 사본으로 (영상·소리·추적 모두 같은 시간축)
     t.info = probe(t.src)
     canvas = tuple(g("CANVAS", (1920, 1080)))
     if canvas != (W, H):

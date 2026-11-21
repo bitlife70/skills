@@ -55,7 +55,8 @@ def main():
     ap.add_argument("--step", type=int, default=0)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
-    cap = cv2.VideoCapture(args.video)
+    from media import ensure_cfr
+    cap = cv2.VideoCapture(ensure_cfr(args.video))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     W0, H0 = int(cap.get(3)), int(cap.get(4))
     tiles = []

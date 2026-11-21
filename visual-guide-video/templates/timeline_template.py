@@ -106,6 +106,17 @@ FLOW = None
 #            active=[(0.0, 0), (7.6, 1)], steps=[(0.0, "STEP 1 · 전체 구조"), (7.6, "STEP 2 · 세부")])
 HUD = None
 
+# ---------------------------------------------------------------- 스토리 그래픽 (발표·소개 영상, story.py)
+# SLATES   = [dict(range=(t0, t1), bg="navy"|"blur"|"none", chip="…", title="…[강조]…", sub="…",
+#                  lines=["— 문제 1", …], pills=["🗄️ 효과", …], tokens=[("🤖", "강점"), …], title_size=110, top=270)]
+# CHAPTERS = [(t, "01", "제목", "효과 문장"[, 태그 끝 시각])]   t 부터 CHAPTER_CARD 초 큰 번호 카드 → 상단 "[01] 제목" 태그
+# CHAPTER_CARD = 2.4
+# CHAPTER_TITLE_SIZE = 86      # 효과 문장을 "" 로 비우고 112 쯤으로 키우면 제목만 크게 (긴 제목은 자동 축소)
+# TAGS     = [(t0, t1, "👤 김OO 님 화면", (r,g,b) | "accent|cyan|green")]   우상단 (누구 화면인지)
+# NOTICES  = [(t, "⏭ 대기 1분 생략"[, 길이])]                                 상단 가운데 강조 배지
+# BADGES   = [(t0, t1, "⏩ x2.4")]                                             좌상단 (recut: C.badges())
+# 긴 녹화를 재배치·압축할 땐 recut.py 편집본을 SRC 로 쓴다 (recipes/product_pitch.py 참고)
+
 # ---------------------------------------------------------------- 범용 연출 (게임·브이로그·애니에서 주로 사용)
 # 돋보기   (t0, t1, 대상, 배율, 라벨[, dict(pos=(x,y) 캔버스, r=반지름, color="accent")])
 MAGNIFY = []
